@@ -70,12 +70,6 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 
 	tp := val.Type()
 
-	// Support for time.Duration
-	if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
-		stringer := val.Interface().(fmt.Stringer)
-		return stringer.String(), nil
-	}
-
 	switch tp.Kind() {
 	case reflect.String:
 		return val.String(), nil
@@ -85,7 +79,20 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 		}
 
 		return "false", nil
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
+		base, err := getBase(options, 10)
+
+		if err != nil {
+			return "", err
+		}
+
+		return strconv.FormatInt(val.Int(), base), nil
+	case reflect.Int64:
+		// Support for time.Duration
+		if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
+			stringer := val.Interface().(fmt.Stringer)
+			return stringer.String(), nil
+		}
 		base, err := getBase(options, 10)
 
 		if err != nil {
