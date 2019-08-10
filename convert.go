@@ -192,18 +192,6 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 
 	tp := retval.Type()
 
-	// Support for time.Duration
-	if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
-		parsed, err := time.ParseDuration(val)
-
-		if err != nil {
-			return err
-		}
-
-		retval.SetInt(int64(parsed))
-		return nil
-	}
-
 	switch tp.Kind() {
 	case reflect.String:
 		retval.SetString(val)
@@ -219,20 +207,25 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 
 			retval.SetBool(b)
 		}
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		base, err := getBase(options, 10)
-
-		if err != nil {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
+		if err := convertSigned(val, retval, tp, options); err != nil {
 			return err
 		}
+	case reflect.Int64:
+		// Support for time.Duration
+		if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
+			parsed, err := time.ParseDuration(val)
 
-		parsed, err := strconv.ParseInt(val, base, tp.Bits())
+			if err != nil {
+				return err
+			}
 
-		if err != nil {
-			return err
+			retval.SetInt(int64(parsed))
+		} else {
+			if err := convertSigned(val, retval, tp, options); err != nil {
+				return err
+			}
 		}
-
-		retval.SetInt(parsed)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		base, err := getBase(options, 10)
 
@@ -307,6 +300,23 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 		}
 	}
 
+	return nil
+}
+
+func convertSigned(val string, retval reflect.Value, tp reflect.Type, options multiTag) error {
+	base, err := getBase(options, 10)
+
+	if err != nil {
+		return err
+	}
+
+	parsed, err := strconv.ParseInt(val, base, tp.Bits())
+
+	if err != nil {
+		return err
+	}
+
+	retval.SetInt(parsed)
 	return nil
 }
 
