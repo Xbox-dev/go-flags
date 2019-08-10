@@ -72,7 +72,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 	var prevcmd *Command
 
 	p.eachActiveGroup(func(c *Command, grp *Group) {
-		if !grp.showInHelp() {
+		if grp.Hidden {
 			return
 		}
 		if c != prevcmd {
