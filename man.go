@@ -177,9 +177,9 @@ func writeManPageCommand(wr io.Writer, name string, root *Command, command *Comm
 // writer.
 func (p *Parser) WriteManPage(wr io.Writer) {
 	t := time.Now()
-	source_date_epoch := os.Getenv("SOURCE_DATE_EPOCH")
-	if source_date_epoch != "" {
-		sde, err := strconv.ParseInt(source_date_epoch, 10, 64)
+	sourceDateEpoch := os.Getenv("SOURCE_DATE_EPOCH")
+	if sourceDateEpoch != "" {
+		sde, err := strconv.ParseInt(sourceDateEpoch, 10, 64)
 		if err != nil {
 			panic(fmt.Sprintf("Invalid SOURCE_DATE_EPOCH: %s", err))
 		}
